@@ -1,0 +1,146 @@
+[
+  {
+    "patient_id": "P001",
+    "name": "Demo Patient A - High Risk",
+    "age": 68,
+    "conditions": ["hypertension", "type2_diabetes", "chronic_kidney_disease"],
+    "medications": ["metformin", "lisinopril", "amlodipine"],
+    "labs": {
+      "CRP": {
+        "values": [2.1, 4.5, 8.2, 12.5],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "mg/L",
+        "reference_range": "0-10"
+      },
+      "WBC": {
+        "values": [7000, 8500, 10000, 11200],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "cells/µL",
+        "reference_range": "4500-11000"
+      },
+      "creatinine": {
+        "values": [1.2, 1.3, 1.5, 1.8],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "mg/dL",
+        "reference_range": "0.7-1.3"
+      }
+    },
+    "vitals": {
+      "heart_rate": {
+        "values": [72, 78, 85, 92],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "bpm"
+      },
+      "blood_pressure_systolic": {
+        "values": [130, 135, 142, 148],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "mmHg"
+      },
+      "blood_pressure_diastolic": {
+        "values": [82, 85, 88, 92],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "mmHg"
+      },
+      "temperature": {
+        "values": [36.8, 37.0, 37.2, 37.5],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "°C"
+      }
+    },
+    "notes": "Expected outcome: ESCALATE. Rising inflammatory markers (CRP), worsening kidney function, and upward trending vitals in a 68-year-old with multiple comorbidities."
+  },
+  {
+    "patient_id": "P002",
+    "name": "Demo Patient B - Low Risk",
+    "age": 35,
+    "conditions": ["seasonal_allergies"],
+    "medications": ["cetirizine"],
+    "labs": {
+      "CRP": {
+        "values": [0.8, 0.9, 0.7, 0.8],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "mg/L",
+        "reference_range": "0-10"
+      },
+      "WBC": {
+        "values": [6200, 6100, 6300, 6150],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "cells/µL",
+        "reference_range": "4500-11000"
+      }
+    },
+    "vitals": {
+      "heart_rate": {
+        "values": [68, 70, 67, 69],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "bpm"
+      },
+      "blood_pressure_systolic": {
+        "values": [118, 120, 117, 119],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "mmHg"
+      },
+      "blood_pressure_diastolic": {
+        "values": [76, 78, 75, 77],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "mmHg"
+      },
+      "temperature": {
+        "values": [36.5, 36.6, 36.5, 36.6],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "°C"
+      }
+    },
+    "notes": "Expected outcome: MONITOR. All metrics stable within normal ranges. Young patient with no significant conditions."
+  },
+  {
+    "patient_id": "P003",
+    "name": "Demo Patient C - Ambiguous / Medium Risk",
+    "age": 52,
+    "conditions": ["hypothyroidism", "mild_anxiety"],
+    "medications": ["levothyroxine", "sertraline"],
+    "labs": {
+      "CRP": {
+        "values": [3.2, 4.1, 5.8, 7.2],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "mg/L",
+        "reference_range": "0-10"
+      },
+      "WBC": {
+        "values": [7800, 7600, 8200, 7900],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "cells/µL",
+        "reference_range": "4500-11000"
+      },
+      "TSH": {
+        "values": [2.1, 2.3, 2.8, 3.5],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "mIU/L",
+        "reference_range": "0.4-4.0"
+      }
+    },
+    "vitals": {
+      "heart_rate": {
+        "values": [74, 72, 78, 82],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "bpm"
+      },
+      "blood_pressure_systolic": {
+        "values": [124, 126, 128, 132],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "mmHg"
+      },
+      "blood_pressure_diastolic": {
+        "values": [80, 80, 82, 84],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "mmHg"
+      },
+      "temperature": {
+        "values": [36.6, 36.7, 36.8, 36.9],
+        "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
+        "unit": "°C"
+      }
+    },
+    "notes": "Expected outcome: UNCERTAIN - tests confidence scoring. CRP trending up but still within range. Mild vital increases. TSH rising but within normal. Could go either way - should have lower confidence score."
+  }
+]
