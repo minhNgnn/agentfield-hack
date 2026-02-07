@@ -1,329 +1,229 @@
-# PLAN.md — Clinical Attention Allocation System
+# plan.md
 
-## 1. Product Summary
+## 1. One-sentence product definition
 
-An autonomous backend system that continuously reasons over patient physiological signals to determine when human clinical attention is required. It replaces static threshold-based alerting and manual triage with embedded reasoning that understands context, quantifies uncertainty, and decides—sometimes—to do nothing. Patients are data sources; doctors receive escalation decisions, not advice.
-
----
-
-## 2. What This System Replaces
-
-| Legacy Approach | This System |
-|-----------------|-------------|
-| Static thresholds (HR > 120 → alert) | Contextual reasoning over longitudinal patterns |
-| Dashboard fatigue requiring manual review | Autonomous attention allocation |
-| Fixed decision trees and if-else workflows | Uncertainty-aware embedded reasoning |
-| Alert storms with no prioritization | Selective escalation with confidence scores |
-| Delayed human attention due to batch processing | Continuous reasoning loop |
-
-The core insight: **the problem is not lack of data—it's lack of continuous reasoning.** Human attention arrives too late because static systems cannot think.
+A **clinical decision orchestration backend** that continuously reasons over hospital patient data and coordinates preventive escalation decisions for doctors, replacing brittle rule-based triage logic.
 
 ---
 
-## 3. Agent Architecture
+## 2. Problem statement
 
-Three agents, split by **reasoning responsibility**, not by data field.
-
-### Agent 1: Patient State Reasoner
-**Type:** Reasoner  
-**Responsibility:** Interpret longitudinal physiological signals and produce a structured state assessment with uncertainty bounds.
-
-- **Inputs:** Time-series wearable data (HRV, sleep stages, activity levels, resting HR trends)
-- **Outputs:**
-  ```
-  {
-    "physiological_state": "declining" | "stable" | "recovering",
-    "anomaly_detected": bool,
-    "uncertainty": 0.0–1.0,
-    "signal_summary": string
-  }
-  ```
-- **Key behavior:** Does NOT diagnose. Produces interpretation of what the signals show, not what they mean clinically.
-
-### Agent 2: Risk Context Agent
-**Type:** Reasoner  
-**Responsibility:** Contextualize the physiological state using patient background to adjust perceived risk.
-
-- **Inputs:** 
-  - Output from Patient State Reasoner
-  - Static patient context (age, active medications, known conditions)
-- **Outputs:**
-  ```
-  {
-    "contextualized_risk": "low" | "moderate" | "elevated" | "high",
-    "risk_factors": [string],
-    "context_uncertainty": 0.0–1.0,
-    "reasoning_trace": string
-  }
-  ```
-- **Key behavior:** A 55-year-old on beta-blockers with declining HRV is different from a 25-year-old athlete. This agent adjusts risk perception, not detection.
-
-### Agent 3: Escalation Synthesizer
-**Type:** Reasoner (with conditional skill invocation)  
-**Responsibility:** Synthesize all signals and decide: **monitor** or **escalate**.
-
-- **Inputs:**
-  - Output from Patient State Reasoner
-  - Output from Risk Context Agent
-  - (Conditional) Knowledge enrichment results
-- **Outputs:**
-  ```
-  {
-    "decision": "continue_monitoring" | "escalate_to_clinician",
-    "confidence": 0.0–1.0,
-    "escalation_urgency": "routine" | "priority" | "urgent" (if escalating),
-    "decision_rationale": string,
-    "uncertainty_resolved_by": string | null
-  }
-  ```
-- **Key behavior:** 
-  - If combined uncertainty is HIGH, invokes Knowledge Enrichment Skill before deciding.
-  - Can decide to do nothing (continue monitoring) with high confidence.
-  - Produces structured decision log for every reasoning cycle.
-
-### Skill: Knowledge Enrichment
-**Type:** Skill (not an agent)  
-**Responsibility:** Reduce uncertainty by consulting domain knowledge when reasoning alone is insufficient.
-
-- **Invoked by:** Escalation Synthesizer (conditionally)
-- **Trigger:** Combined uncertainty exceeds threshold (e.g., > 0.6)
-- **Implementation:** Mocked lookup returning relevant clinical context
-  ```
-  query: "beta-blocker + HRV suppression + age > 50"
-  response: {
-    "relevant_context": "Beta-blockers commonly suppress HRV. Declining HRV in medicated patients may reflect medication effect rather than autonomic dysfunction.",
-    "confidence_adjustment": -0.2
-  }
-  ```
-- **Key behavior:** This is a supporting skill, not the product. Minimal implementation, maximum reasoning value.
+Hospitals rely on static, hard-coded clinical rules and delayed manual review to triage patients.  
+As patient volume increases and clinical data becomes richer (labs, vitals, trends over time), these rule-based systems fail to surface early risk signals. Doctors are overloaded, escalation happens too late, and subtle but important patterns are missed — not due to lack of data, but because reasoning across many patients does not scale.
 
 ---
 
-## 4. Data Sources
+## 3. Why this fits AgentField
 
-### Core: Longitudinal Wearable Data
-- Heart Rate Variability (HRV) — SDNN, RMSSD trends
-- Sleep architecture — deep sleep %, wake episodes
-- Activity levels — steps, movement intensity
-- Resting heart rate trends
+This problem is fundamentally about **AI embedded in backend systems**, not chat interfaces.
 
-**Treatment:** Time-series reasoning, not point-in-time thresholds. The Patient State Reasoner looks at patterns over 7–14 days.
+- Clinical triage today is implemented as **if–else logic**
+- These rules cannot weigh trade-offs, trends, or uncertainty
+- AgentField enables replacing these rules with:
+  - **Reasoners** for judgment calls
+  - **Skills** for deterministic execution
+  - **Memory** for shared patient context
+  - **Discovery** for agent coordination without workflows or queues
 
-### Context: Static Patient Information
-- Age
-- Active medications (especially cardiac-relevant)
-- Known conditions (hypertension, diabetes, prior cardiac events)
-
-**Treatment:** Used by Risk Context Agent to adjust interpretation. A "normal" reading for one patient may be concerning for another.
-
-### Optional: User-Provided Signals
-- Images (e.g., skin changes, swelling)
-- Symptom self-reports
-
-**Treatment:** If included, treated as **noisy supplementary signals**, not diagnoses. An image showing ankle swelling is a risk signal to factor in, not a diagnosis of edema.
-
-**For hackathon scope:** Focus on wearable + context. Image analysis is a stretch goal only.
+This system primarily uses **Embedded Reasoning**, with light **Coordination**.
 
 ---
 
-## 5. Role of the Knowledge Graph
+## 4. System scope
 
-### What It Is
-A lightweight, conditionally-invoked skill that provides domain knowledge to reduce uncertainty.
+### What we build
+- A backend system that:
+  - Ingests structured hospital patient data (mocked)
+  - Stores patient context in shared memory
+  - Reasons over patient risk
+  - Produces preventive escalation recommendations for doctors
+- One end-to-end workflow
+- One clear AI decision point
 
-### What It Is NOT
-- Not a full ontology implementation
-- Not a visualization target
-- Not the core product
-
-### Implementation Strategy
-**Mock it.** Create a simple lookup function that returns pre-written clinical context for 3–5 common query patterns:
-
-```python
-MOCK_KG = {
-    "beta-blocker+HRV": "Beta-blockers suppress HRV...",
-    "age>60+sleep_disruption": "Sleep architecture changes...",
-    "diabetes+activity_decline": "Reduced activity in diabetic patients..."
-}
-```
-
-### Invocation Pattern
-1. Escalation Synthesizer detects high uncertainty
-2. Constructs query from current context
-3. Calls Knowledge Enrichment Skill
-4. Incorporates response into final decision
-5. Logs that uncertainty was resolved via KG consultation
+### What we explicitly do NOT build
+- No diagnoses
+- No treatment recommendations
+- No patient-facing chatbot
+- No full EHR integrations
+- No real-time wearable ingestion
+- No image analysis
+- No large-scale medical knowledge ingestion pipelines
 
 ---
 
-## 6. Trust, Uncertainty, and Auditability
+## 5. Primary user (ICP)
 
-### Uncertainty Handling
-Every agent output includes an uncertainty score (0.0–1.0). Uncertainty propagates through the reasoning chain:
+**Doctors at high-end private hospitals**
 
-1. **Patient State Reasoner** — Signal uncertainty (noisy data, missing values)
-2. **Risk Context Agent** — Context uncertainty (incomplete patient history)
-3. **Escalation Synthesizer** — Combined uncertainty drives behavior:
-   - Low uncertainty → Decide directly
-   - High uncertainty → Invoke Knowledge Enrichment first
-   - Very high uncertainty → Escalate with explicit "low confidence" flag
+They need:
+- Early warning signals
+- Prioritized attention
+- Transparent, auditable recommendations
+- Systems that assist clinical judgment rather than replace it
 
-### Auditability
-Every reasoning cycle produces a structured decision log:
+---
+
+## 6. Core use case (single workflow)
+
+### Question the system answers
+> “Should this patient be proactively escalated for clinical review right now?”
+
+### Input
+- Patient demographics
+- Known conditions
+- Recent lab biomarkers
+- Vital sign trends over time
+- Derived trend summaries (e.g. worsening inflammation)
+
+### Reasoning
+- Weighs multiple signals together
+- Evaluates trends instead of static thresholds
+- Accounts for uncertainty
+
+### Output
+- A structured escalation recommendation for doctors
+
+---
+
+## 7. Agent architecture
+
+### Agent 1: Patient Context Agent
+**Purpose**
+- Collects and normalizes patient data
+- Writes unified patient context to shared memory
+
+**Primitives used**
+- Skills: data normalization
+- Memory: patient context storage
+
+---
+
+### Agent 2: Clinical Reasoner Agent (core)
+**Purpose**
+- Makes the clinical judgment call
+
+**Primitives used**
+- Reasoners: evaluates escalation necessity
+- Memory: reads patient context
+- Discovery: calls other agents by name
+
+This agent replaces hard-coded triage rules with AI judgment.
+
+---
+
+### Agent 3: Notification & Audit Agent
+**Purpose**
+- Executes deterministic actions after a decision
+
+**Primitives used**
+- Skills: notification mock, logging
+- Memory: stores decision trace
+
+---
+
+## 8. Reasoner schema (structured output)
+
+The AI does not return free-form text.
+
+Example schema:
 
 ```json
 {
-  "cycle_id": "uuid",
-  "timestamp": "ISO8601",
-  "patient_id": "anonymized",
-  "inputs": { ... },
-  "agent_outputs": {
-    "patient_state_reasoner": { ... },
-    "risk_context_agent": { ... },
-    "escalation_synthesizer": { ... }
-  },
-  "knowledge_enrichment_invoked": true | false,
-  "final_decision": "continue_monitoring" | "escalate_to_clinician",
-  "confidence": 0.82,
-  "reasoning_trace": "Full chain of reasoning..."
+  "escalation_decision": "escalate | monitor",
+  "risk_level": "low | medium | high",
+  "confidence": 0.0,
+  "rationale": "Short explanation grounded in patient data"
 }
 ```
 
-### AgentField Automatic Audit Trail
-**Explicitly note in presentation:** AgentField provides cryptographic audit trails automatically. We do not implement cryptography—we rely on the platform's built-in execution logging and provenance tracking.
+9. Role of Memory
 
-### Human-in-the-Loop
-- The system **never** takes clinical action
-- It **only** allocates attention (escalate or monitor)
-- Every escalation includes rationale for clinician review
-- Clinicians can provide feedback that improves future reasoning (out of hackathon scope)
+Shared memory acts as the clinical context layer.
 
----
+It stores:
+	•	Normalized patient state
+	•	Trend summaries
+	•	Historical decisions and outcomes
 
-## 7. Demo Flow
+Memory enables:
+	•	Agents to coordinate without knowing about each other
+	•	Reasoning to be grounded in accumulated context
+	•	Clear auditability of decisions
 
-### Setup (Pre-Demo)
-- AgentField server running
-- Three agents registered: `patient-state-reasoner`, `risk-context-agent`, `escalation-synthesizer`
-- Knowledge Enrichment skill available
-- Mock patient data loaded (2–3 patient scenarios)
+No external databases, queues, or configuration are required.
 
-### Demo Scenario 1: Clear Escalation
-**Patient:** 62-year-old on beta-blockers, declining HRV trend over 5 days, reduced deep sleep
+⸻
 
-1. **Trigger:** POST `/api/v1/execute/patient-state-reasoner`
-   - Input: 7-day HRV + sleep data
-   - Output: `{ "physiological_state": "declining", "uncertainty": 0.3 }`
+10. Role of Discovery
 
-2. **Coordination:** Escalation Synthesizer invokes Risk Context Agent
-   - Input: Physiological state + patient context (age, meds)
-   - Output: `{ "contextualized_risk": "elevated", "risk_factors": ["age", "cardiac_medication"] }`
+Agents do not know where other agents live.
 
-3. **Decision:** Escalation Synthesizer reasons
-   - Combined uncertainty: 0.35 (below threshold, no KG needed)
-   - Output: `{ "decision": "escalate_to_clinician", "urgency": "priority", "confidence": 0.78 }`
+They:
+	•	Call each other by name
+	•	Share context automatically
+	•	Rely on the control plane for routing, retries, and lifecycle
 
-4. **Show:** Structured decision log with full reasoning trace
+This allows clean coordination without workflows or DAG definitions.
 
-### Demo Scenario 2: Uncertainty Triggers Knowledge Enrichment
-**Patient:** 45-year-old, recently started new medication, ambiguous HRV pattern
+⸻
 
-1. **Trigger:** POST `/api/v1/execute/patient-state-reasoner`
-   - Output: `{ "physiological_state": "uncertain", "uncertainty": 0.7 }`
+11. Trust, auditability, and safety
 
-2. **Coordination:** Risk Context Agent
-   - Output: `{ "contextualized_risk": "moderate", "context_uncertainty": 0.5 }`
+This system:
+	•	Never diagnoses
+	•	Never prescribes treatment
+	•	Never overrides doctors
 
-3. **Decision:** Escalation Synthesizer detects high combined uncertainty
-   - **Invokes Knowledge Enrichment Skill**
-   - Query: "new_medication + HRV_variability"
-   - Response: "New medications commonly cause transient HRV changes..."
-   - Uncertainty reduced to 0.4
+It only prioritizes attention.
 
-4. **Final Decision:** `{ "decision": "continue_monitoring", "confidence": 0.72 }`
+Trust is built through:
+	•	Structured outputs
+	•	Explicit confidence scores
+	•	Clear rationale fields
+	•	Logged decision traces
 
-5. **Show:** Decision log showing KG invocation and uncertainty resolution
+Every recommendation is auditable:
+	•	Inputs → reasoning → output
+	•	No hidden logic
 
-### Demo Scenario 3: Deciding to Do Nothing
-**Patient:** 28-year-old athlete, normal patterns, stable trends
+⸻
 
-1. **Full reasoning chain executes**
-2. **Output:** `{ "decision": "continue_monitoring", "confidence": 0.95 }`
-3. **Point:** The system decided human attention is NOT required. This is a valid, valuable output.
+12. Demo plan
+	1.	Show a mocked patient profile with recent biomarker trends
+	2.	Patient Context Agent writes context to shared memory
+	3.	Clinical Reasoner Agent is triggered
+	4.	Display:
+	•	Escalation decision
+	•	Risk level
+	•	Confidence score
+	5.	Notification & Audit Agent logs the decision
+	6.	Explain how this replaces rule-based alerts
 
----
+The demo is backend-first with minimal UI.
 
-## 8. Two-Minute Presentation Outline
+-----
+13. How this replaces hard-coded logic
 
-### 0:00–0:20 — Problem
-> "Clinical attention arrives too late. Not because we lack data—wearables generate continuous signals—but because static thresholds can't think. Alert fatigue is a symptom of systems that don't reason."
-
-### 0:20–0:40 — Insight
-> "The solution isn't better thresholds or smarter dashboards. It's embedded reasoning that continuously interprets signals, understands context, quantifies uncertainty, and decides—sometimes—that no action is needed."
-
-### 0:40–1:10 — Architecture (show diagram)
-> "Three reasoners, split by responsibility:
-> 1. Patient State Reasoner interprets physiological patterns
-> 2. Risk Context Agent adjusts for patient background
-> 3. Escalation Synthesizer decides: monitor or escalate
->
-> When uncertainty is high, a Knowledge Enrichment skill is invoked to reduce it. This is coordination, not a fixed workflow."
-
-### 1:10–1:30 — What We Replaced
-> "No if-else logic. No static thresholds. No DAGs. Every decision is reasoned, uncertainty-aware, and logged. AgentField's audit trail provides cryptographic provenance automatically."
-
-### 1:30–1:50 — Alignment with AgentField
-> "This is AI-as-backend infrastructure:
-> - Reasoners, not chatbots
-> - Embedded reasoning, not prompt chains
-> - Coordination driven by uncertainty, not predefined flows
-> - The system replaces complexity that would otherwise require thousands of lines of business logic."
-
-### 1:50–2:00 — Close
-> "Clinical attention should be allocated by reasoning, not rules. This system does that."
-
----
-
-## 9. Explicit Non-Goals
-
-| Intentionally NOT Building | Reason |
-|---------------------------|--------|
-| Patient-facing UI | Patients are data sources, not users |
-| Doctor workflow UI | Doctors receive decisions, not a product |
-| Chat interface | This is infrastructure, not a conversational agent |
-| Diagnosis or prescription | System allocates attention, not clinical judgment |
-| Full Knowledge Graph | KG is a supporting skill, mocked for demo |
-| Image analysis pipeline | Out of scope; wearables are primary |
-| Cryptographic implementation | AgentField provides this automatically |
-| Fixed DAG workflows | Coordination is dynamic, driven by uncertainty |
-| Real-time streaming architecture | Batch/trigger-based reasoning is sufficient for demo |
-| Multi-patient prioritization | Single-patient reasoning is the core; fleet management is future work |
-| Feedback loop / learning | Valuable but out of hackathon scope |
-
----
-
-## Appendix: File Structure (Anticipated)
-
+Traditional system
 ```
-my-agent/
-├── main.py                     # Agent registration
-├── reasoners.py                # Three reasoners defined here
-├── skills/
-│   └── knowledge_enrichment.py # Mocked KG skill
-├── data/
-│   ├── mock_patients.json      # 2–3 patient scenarios
-│   └── mock_kg.json            # Pre-written knowledge responses
-├── .env                        # API keys if needed
-└── README.md
+IF biomarker > threshold AND age > X THEN alert
 ```
 
----
+This system
+	•	Reasons across:
+	•	Multiple biomarkers
+	•	Trends over time
+	•	Patient context
+	•	Produces a judgment rather than a binary rule
 
-## Appendix: Key Phrases for Judges
+This makes triage:
+	•	More adaptive
+	•	More scalable
+	•	More clinically realistic
 
-- "Embedded reasoning replaces static thresholds"
-- "Uncertainty-aware decisions, not binary alerts"
-- "Coordination driven by reasoning state, not predefined workflows"
-- "The system can decide to do nothing—and that's valuable"
-- "AI-as-backend: no UI, no chatbot, just infrastructure"
-- "AgentField's audit trail provides accountability automatically"
+⸻
+
+14. Final positioning statement
+
+This is not an AI doctor.
+It is AI embedded into hospital infrastructure to replace brittle clinical decision logic — safely, transparently, and at scale.
