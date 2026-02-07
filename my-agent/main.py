@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from agentfield import Agent, AIConfig
 from reasoners import reasoners_router
+from skills import skills_router
 
 # Load environment variables from .env file
 load_dotenv()
@@ -22,8 +23,9 @@ app = Agent(
     ),
 )
 
-# Include reasoners from separate file
+# Include routers from separate files
 app.include_router(reasoners_router)
+app.include_router(skills_router)
 
 if __name__ == "__main__":
     # Auto-discover available port starting from 8000
