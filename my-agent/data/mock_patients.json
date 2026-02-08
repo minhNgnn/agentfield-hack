@@ -1,7 +1,7 @@
 [
   {
     "patient_id": "P001",
-    "name": "Demo Patient A - High Risk",
+    "name": "Demo Patient A ",
     "age": 68,
     "conditions": ["hypertension", "type2_diabetes", "chronic_kidney_disease"],
     "medications": ["metformin", "lisinopril", "amlodipine"],
@@ -46,12 +46,12 @@
         "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
         "unit": "°C"
       }
-    },
-    "notes": "Expected outcome: ESCALATE. Rising inflammatory markers (CRP), worsening kidney function, and upward trending vitals in a 68-year-old with multiple comorbidities."
+    }
+    
   },
   {
     "patient_id": "P002",
-    "name": "Demo Patient B - Low Risk",
+    "name": "Demo Patient B ",
     "age": 35,
     "conditions": ["seasonal_allergies"],
     "medications": ["cetirizine"],
@@ -90,8 +90,8 @@
         "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
         "unit": "°C"
       }
-    },
-    "notes": "Expected outcome: MONITOR. All metrics stable within normal ranges. Young patient with no significant conditions."
+    }
+    
   },
   {
     "patient_id": "P003",
@@ -140,7 +140,6 @@
         "dates": ["2026-01-28", "2026-01-31", "2026-02-03", "2026-02-06"],
         "unit": "°C"
       }
-    },
-    "notes": "Expected outcome: UNCERTAIN - tests confidence scoring. CRP trending up but still within range. Mild vital increases. TSH rising but within normal. Could go either way - should have lower confidence score."
+    }
   }
 ]
